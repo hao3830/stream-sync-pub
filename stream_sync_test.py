@@ -55,6 +55,8 @@ if __name__ == "__main__":
         
         cap_writers = []
         for cap_id, cam in enumerate(cams):
+            cam_dir = os.path.join(SAVE, str(cap_id))
+            os.makedirs(cam_dir, exist_ok=True)
             cap_writers.append(cv2.VideoWriter(os.path.join(SAVE, str(cap_id), "video.mp4"), cv2.VideoWriter_fourcc(*'mp4v'), cam["frame_rate"], (1920, 1080)))
 
                 
