@@ -96,9 +96,14 @@ if __name__ == "__main__":
                     f.write(f"{ips[cap_id]}<>{step:06d}<>{curr_t.timestamp()}<>{formatted_t}<>{os.path.join(cam_dir, file_name)}\n")
 
             max_dts.append(np.max(timestamps) - np.min(timestamps))
+            key = cv2.waitKey(1) & 0xFF
+            if key == ord('q') or key == 27:  # 27 = ESC
+                print("Quit key pressed. Releasing writers and exiting...")
+                break
 
     except KeyboardInterrupt:
         pass
     finally:
         for cap_id, cam in enumerate(cams):
             cap_writers[cap_id].release()
+        cv2.destroyAllWindows()
