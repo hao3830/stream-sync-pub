@@ -21,6 +21,7 @@ if __name__ == "__main__":
     parser.add_argument("--save", type=str, default="vis")
     parser.add_argument("--ip_path", type=str, default="ips.txt")
     
+    
     args = parser.parse_args()
     
     SAVE = args.save
@@ -42,7 +43,6 @@ if __name__ == "__main__":
 
 
     try:
-
         step = 0
         max_dts = []
         while True:
@@ -74,11 +74,8 @@ if __name__ == "__main__":
                 file_name = f"{step:06d}_{curr_t.timestamp()}_{formatted_t}.png"
                 
                 cv2.imwrite(os.path.join(cam_dir, file_name), frame_data["frame"])
-
-                print(("| timestamp:", frame_data["timestamp"],
-                       " | frame_type:", frame_data["frame_type"],
-                       " | mvs shape:", np.shape(frame_data["motion_vector"])))
-
+                with open(os.path.join(cam_dir, "logs.txt"), "a") as f:
+                    f.write(f"{ips[cap_id]}<>{step:06d}<>{curr_t.timestamp()}<>{formatted_t}\n")
 
             max_dts.append(np.max(timestamps) - np.min(timestamps))
 
