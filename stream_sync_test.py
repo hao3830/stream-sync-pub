@@ -25,9 +25,8 @@ def signal_handler(sig, frame):
     """Handle SIGTERM and SIGINT signals for graceful shutdown"""
     print(f"Received signal {sig}. Cleaning up...")
     # Release video writers
-    for writer in cap_writers:
-        if writer is not None:
-            writer.release()
+    for idx, writer in enumerate(cap_writers):
+        cap_writers[idx].release()
     # Release stream synchronizer resources
     cv2.destroyAllWindows()
     sys.exit(0)
