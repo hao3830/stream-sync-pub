@@ -1,7 +1,10 @@
 import os
 import cv2
+import shutil
 import ntplib
+
 import numpy as np
+
 from argparse import ArgumentParser
 from datetime import datetime, timedelta
 from stream_sync import StreamSynchronizer
@@ -29,6 +32,10 @@ if __name__ == "__main__":
     with open(IP_PATH, "r") as f:
         ips = f.readlines()
     ips = [ip.strip() for ip in ips]
+    
+    if os.path.exists(SAVE):
+        # remove the save directory
+        shutil.rmtree(SAVE)
     
     os.makedirs(SAVE, exist_ok=True)
     
