@@ -29,8 +29,6 @@ def signal_handler(sig, frame):
         if writer is not None:
             writer.release()
     # Release stream synchronizer resources
-    if 'stream_synchronizer' in globals():
-        stream_synchronizer.release()  # if this method exists
     cv2.destroyAllWindows()
     sys.exit(0)
 
