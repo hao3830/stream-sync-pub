@@ -17,7 +17,26 @@ def get_ntp_time():
 
 start_time = datetime.now()
 anchor = get_ntp_time()
-    
+
+import signal
+import sys
+
+def signal_handler(sig, frame):
+    """Handle SIGTERM and SIGINT signals for graceful shutdown"""
+    print(f"Received signal {sig}. Cleaning up...")
+    # Release video writers
+    for writer in cap_writers:
+        if writer is not None:
+            writer.release()
+    # Release stream synchronizer resources
+    if 'stream_synchronizer' in globals():
+        stream_synchronizer.release()  # if this method exists
+    cv2.destroyAllWindows()
+    sys.exit(0)
+
+# Register signal handlers
+signal.signal(signal.SIGTERM, signal_handler)  # Docker stop
+signal.signal(signal.SIGINT, signal_handler)   # Ctrl+C
 
 if __name__ == "__main__":
     parser = ArgumentParser()
