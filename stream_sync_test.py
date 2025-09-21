@@ -20,8 +20,10 @@ anchor = get_ntp_time()
 
 import signal
 import sys
+cap_writers = []
 
 def signal_handler(sig, frame):
+    global cap_writers
     """Handle SIGTERM and SIGINT signals for graceful shutdown"""
     print(f"Received signal {sig}. Cleaning up...")
     # Release video writers
@@ -69,11 +71,10 @@ if __name__ == "__main__":
         step = 0
         max_dts = []
         
-        cap_writers = []
         for cap_id, cam in enumerate(cams):
             cam_dir = os.path.join(SAVE, str(cap_id))
             os.makedirs(cam_dir, exist_ok=True)
-            cap_writers.append(cv2.VideoWriter(os.path.join(SAVE, str(cap_id), "video.avi"), cv2.VideoWriter_fourcc(*'XVID'), cam["frame_rate"], (1920, 1080)))
+            cap_writers.append(cv2.VideoWriter(os.path.join(SAVE, str(cap_id), "video.avi"), cv2.VideoWriter_fourcc(*'MPEG'), cam["frame_rate"], (1920, 1080)))
 
                 
         while True:
