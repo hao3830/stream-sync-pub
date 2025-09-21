@@ -1,68 +1,45 @@
+import os
 import cv2
+import ntplib
 import numpy as np
-
+from argparse import ArgumentParser
+from datetime import datetime, timedelta
 from stream_sync import StreamSynchronizer
 
+client = ntplib.NTPClient()
+
+def get_ntp_time():
+    response = client.request('time.windows.com')
+    return datetime.fromtimestamp(response.tx_time)
+
+start_time = datetime.now()
+anchor = get_ntp_time()
+    
 
 if __name__ == "__main__":
-
-    def finalize():
-        cv2.destroyAllWindows()
-        print("N = {}".format(len(max_dts)))
-        print("mean dt_max = {}".format(np.mean(max_dts)))
-        print("std dt_max = {}".format(np.std(max_dts)))
-
+    parser = ArgumentParser()
+    parser.add_argument("--save", type=str, default="vis")
+    parser.add_argument("--ip_path", type=str, default="ips.txt")
+    
+    args = parser.parse_args()
+    
+    SAVE = args.save
+    IP_PATH = args.ip_path
+    with open(IP_PATH, "r") as f:
+        ips = f.readlines()
+    ips = [ip.strip() for ip in ips]
+    
+    os.makedirs(SAVE, exist_ok=True)
+    
     cams = [
-        # cam_0
-        {"source": "rtsp://user:SIMTech2019@172.20.114.22:554/cam/realmonitor?channel=1&subtype=0",
+        {"source": f"rtsp://admin:123456@{ip}:554/h264Preview_01_main",
          "calibration_parameters": "camera_calibration/calibration_parameters/0",
          "frame_width": 1920,
          "frame_height": 1080,
-         "frame_rate": 15.0},
-        # cam 1
-        {"source": "rtsp://user:SIMTech2019@172.20.114.23:554/cam/realmonitor?channel=1&subtype=0",
-         "calibration_parameters": "camera_calibration/calibration_parameters/1",
-         "frame_width": 1920,
-         "frame_height": 1080,
-         "frame_rate": 15.0},
-        # cam 2
-        {"source": "rtsp://user:SIMTech2019@172.20.114.24:554/cam/realmonitor?channel=1&subtype=0",
-         "calibration_parameters": "camera_calibration/calibration_parameters/0",
-         "frame_width": 1920,
-         "frame_height": 1080,
-         "frame_rate": 15.0},
-        # cam 3
-        {"source": "rtsp://user:SIMTech2019@172.20.114.25:554/cam/realmonitor?channel=1&subtype=0",
-         "calibration_parameters": "camera_calibration/calibration_parameters/1",
-         "frame_width": 1920,
-         "frame_height": 1080,
-         "frame_rate": 15.0},
-        # cam 4
-        {"source": "rtsp://user:SIMTech2019@172.20.114.26:554/cam/realmonitor?channel=1&subtype=0",
-         "calibration_parameters": "camera_calibration/calibration_parameters/0",
-         "frame_width": 1920,
-         "frame_height": 1080,
-         "frame_rate": 15.0},
-        # cam 5
-        {"source": "rtsp://user:SIMTech2019@172.20.114.27:554/cam/realmonitor?channel=1&subtype=0",
-         "calibration_parameters": "camera_calibration/calibration_parameters/1",
-         "frame_width": 1920,
-         "frame_height": 1080,
-         "frame_rate": 15.0},
-        # cam 6
-        {"source": "rtsp://user:SIMTech2019@172.20.114.28:554/cam/realmonitor?channel=1&subtype=0",
-         "calibration_parameters": "camera_calibration/calibration_parameters/0",
-         "frame_width": 1920,
-         "frame_height": 1080,
-         "frame_rate": 15.0}
-    ]
+         "frame_rate": 15.0} for ip in ips]
 
     stream_synchronizer = StreamSynchronizer(cams)
 
-
-    for cap_id, cam in enumerate(cams):
-        cv2.namedWindow("camera_{}".format(cap_id), cv2.WINDOW_NORMAL)
-        cv2.resizeWindow("camera_{}".format(cap_id), 640, 360)
 
     try:
 
@@ -89,19 +66,21 @@ if __name__ == "__main__":
 
                 # compute the maximum inter-packet time delta
                 timestamps.append(frame_data["timestamp"])
+                cam_dir = os.path.join(SAVE, str(cap_id))
+                os.makedirs(cam_dir, exist_ok=True)
+                
+                curr_t = anchor + timedelta(seconds=(datetime.now() - start_time).total_seconds())
+                formatted_t = curr_t.strftime("%Y-%m-%d_%H-%M-%S-%f")
+                file_name = f"{step:06d}_{curr_t.timestamp()}_{formatted_t}.png"
+                
+                cv2.imwrite(os.path.join(cam_dir, file_name), frame_data["frame"])
 
                 print(("| timestamp:", frame_data["timestamp"],
                        " | frame_type:", frame_data["frame_type"],
                        " | mvs shape:", np.shape(frame_data["motion_vector"])))
 
-                cv2.imshow("camera_{}".format(cap_id), frame_data["frame"])
 
             max_dts.append(np.max(timestamps) - np.min(timestamps))
 
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-               break
-
-        finalize()
-
     except KeyboardInterrupt:
-        finalize()
+        pass
