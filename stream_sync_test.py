@@ -82,7 +82,7 @@ if __name__ == "__main__":
                 
                 cv2.imwrite(os.path.join(cam_dir, file_name), frame_data["frame"])
                 with open(os.path.join(cam_dir, "logs.txt"), "a") as f:
-                    f.write(f"{ips[cap_id]}<>{step:06d}<>{curr_t.timestamp()}<>{formatted_t}\n")
+                    f.write(f"{ips[cap_id]}<>{step:06d}<>{curr_t.timestamp()}<>{formatted_t}<>{os.path.join(cam_dir, file_name)}\n")
 
             max_dts.append(np.max(timestamps) - np.min(timestamps))
 
