@@ -95,3 +95,6 @@ if __name__ == "__main__":
 
     except KeyboardInterrupt:
         pass
+    finally:
+        for cap_id, cam in enumerate(cams):
+            cap_writers[cap_id].release()
