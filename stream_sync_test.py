@@ -21,17 +21,12 @@ anchor = get_ntp_time()
 import signal
 import sys
 cap_writers = []
+RUNNING = True               # <-- global flag instead of sys.exit()
 
 def signal_handler(sig, frame):
-    global cap_writers
-    """Handle SIGTERM and SIGINT signals for graceful shutdown"""
-    print(f"Received signal {sig}. Cleaning up...")
-    # Release video writers
-    for idx, writer in enumerate(cap_writers):
-        cap_writers[idx].release()
-    # Release stream synchronizer resources
-    cv2.destroyAllWindows()
-    sys.exit(0)
+    global RUNNING
+    print(f"\nReceived signal {sig}. Stopping loop gracefully...")
+    RUNNING = False
 
 # Register signal handlers
 signal.signal(signal.SIGTERM, signal_handler)  # Docker stop
@@ -74,10 +69,10 @@ if __name__ == "__main__":
         for cap_id, cam in enumerate(cams):
             cam_dir = os.path.join(SAVE, str(cap_id))
             os.makedirs(cam_dir, exist_ok=True)
-            cap_writers.append(cv2.VideoWriter(os.path.join(SAVE, str(cap_id), "video.avi"), cv2.VideoWriter_fourcc(*'MPEG'), cam["frame_rate"], (1920, 1080)))
+            cap_writers.append(cv2.VideoWriter(os.path.join(SAVE, str(cap_id), "video.avi"), cv2.VideoWriter_fourcc(*'XVID'), cam["frame_rate"], (1920, 1080)))
 
                 
-        while True:
+        while RUNNING:
 
             print("##### Step", step, "#####")
             step += 1;
@@ -121,6 +116,11 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         pass
     finally:
-        for cap_id, cam in enumerate(cams):
-            cap_writers[cap_id].release()
+        # clean, single-point release so headers/trailers are written
+        for i, w in enumerate(cap_writers):
+            try:
+                w.release()
+            except Exception:
+                pass
         cv2.destroyAllWindows()
+        print("All writers released. Goodbye.")
