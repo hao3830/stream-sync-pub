@@ -52,6 +52,12 @@ if __name__ == "__main__":
     try:
         step = 0
         max_dts = []
+        
+        cap_writers = []
+        for cap_id, cam in enumerate(cams):
+            cap_writers.append(cv2.VideoWriter(os.path.join(SAVE, str(cap_id), "video.mp4"), cv2.VideoWriter_fourcc(*'mp4v'), cam["frame_rate"], (1920, 1080)))
+
+                
         while True:
 
             print("##### Step", step, "#####")
@@ -62,11 +68,7 @@ if __name__ == "__main__":
             if not frame_packet:
                 raise RuntimeError("Received invalid Frame Packet")
             
-            cap_writers = []
-            for cap_id, cam in enumerate(cams):
-                cap_writers.append(cv2.VideoWriter(os.path.join(SAVE, str(cap_id), "video.mp4"), cv2.VideoWriter_fourcc(*'mp4v'), cam["frame_rate"], (1920, 1080)))
-
-                
+            
             timestamps = []
             for cap_id, frame_data in frame_packet.items():
 
