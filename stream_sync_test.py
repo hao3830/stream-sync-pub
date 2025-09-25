@@ -100,10 +100,10 @@ if __name__ == "__main__":
                 curr_t = anchor + timedelta(seconds=(datetime.now() - start_time).total_seconds())
                 formatted_t = curr_t.strftime("%Y-%m-%d_%H-%M-%S-%f")
                 file_name = f"{step:06d}_{curr_t.timestamp()}_{formatted_t}.png"
-                
-                # cv2.imwrite(os.path.join(cam_dir, file_name), frame_data["frame"])
                 image = cv2.resize(frame_data["frame"], (1920, 1080))
-                cap_writers[cap_id].write(image)
+                
+                cv2.imwrite(os.path.join(cam_dir, file_name), image)
+                # cap_writers[cap_id].write(image)
                 with open(os.path.join(cam_dir, "logs.txt"), "a") as f:
                     f.write(f"{ips[cap_id]}<>{step:06d}<>{curr_t.timestamp()}<>{formatted_t}<>{os.path.join(cam_dir, file_name)}\n")
 
